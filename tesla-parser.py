@@ -198,9 +198,14 @@ for fname in args.files:
 		    # check if we need to update anything and get the string for the update
 		    updateargs = this.sql_vehicle_update_dict(res)
 		    # update the row if needed
+		    if( len(updateargs) == 1):
+		        query_template = "UPDATE vehicle SET {} = %s WHERE vehicle_id = {}"
+		        keyval = updateargs.keys()
+		        query = query_template.format(keyval[0], this.vehicle_id )   
 		    if( len(updateargs) > 1 ):
 		        query_template = "UPDATE vehicle SET ({}) = %s WHERE vehicle_id = {}"
 		        query = query_template.format( ', '.join(updateargs.keys()), this.vehicle_id )
+		    if( len(updateargs) > 0 ):
 		        vals = (tuple(updateargs.values()),)
 		        try:
 		            cursor.execute(query,vals)
@@ -234,12 +239,10 @@ for fname in args.files:
 		except (Exception, psycopg2.Error) as error :
 		    if args.verbose>0:
 		        if error.diag.sqlstate == '23505' :
-		            print "Did not insert record into vehicle_status: duplicate timestamp"
+		            print 'Did not insert record into vehicle_status: duplicate timestamp'
 		            if args.verbose>1:
 			       print 'vehicle: {} timestamp: {}'.format(insertargs['vehicle_id'],insertargs['ts'])
-			    print
 		        else:
-			    print error.diag.sqlstate
 		            print "Error: failed to insert record into vehicle_status"
 			    print error
 		    dbconn.rollback()
